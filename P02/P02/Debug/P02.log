@@ -1,0 +1,21 @@
+﻿  Demo.cpp
+c:\users\administrator\source\repos\p02\p02\demo.cpp(14): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\administrator\source\repos\p02\p02\demo.cpp(128): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+c:\users\administrator\source\repos\p02\p02\demo.cpp(129): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\administrator\source\repos\p02\p02\demo.cpp(131): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\administrator\source\repos\p02\p02\demo.cpp(138): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\administrator\source\repos\p02\p02\demo.cpp(140): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  Device.cpp
+  DeviceContext.cpp
+c:\users\administrator\source\repos\p02\p02\devicecontext.cpp(160): warning C4244: 'argument': conversion from 'const double' to 'int', possible loss of data
+c:\users\administrator\source\repos\p02\p02\devicecontext.cpp(161): warning C4244: 'argument': conversion from 'const double' to 'int', possible loss of data
+c:\users\administrator\source\repos\p02\p02\devicecontext.cpp(162): warning C4244: 'argument': conversion from 'const double' to 'int', possible loss of data
+c:\users\administrator\source\repos\p02\p02\devicecontext.cpp(186): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+  main.cpp
+  Util.cpp
+c:\users\administrator\source\repos\p02\p02\math\util.cpp(7): warning C4244: 'initializing': conversion from 'double' to 'BYTE', possible loss of data
+c:\users\administrator\source\repos\p02\p02\math\util.cpp(8): warning C4244: 'initializing': conversion from 'double' to 'BYTE', possible loss of data
+c:\users\administrator\source\repos\p02\p02\math\util.cpp(9): warning C4244: 'initializing': conversion from 'double' to 'BYTE', possible loss of data
+  Shader.cpp
+  Generating Code...
+  P02.vcxproj -> C:\Users\Administrator\source\repos\P02\Debug\P02.exe

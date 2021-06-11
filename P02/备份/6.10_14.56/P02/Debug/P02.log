@@ -1,0 +1,8 @@
+﻿  Demo.cpp
+c:\users\administrator\source\repos\p02\p02\demo.cpp(13): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\administrator\source\repos\p02\p02\demo.cpp(181): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+c:\users\administrator\source\repos\p02\p02\demo.cpp(182): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\administrator\source\repos\p02\p02\demo.cpp(184): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\administrator\source\repos\p02\p02\demo.cpp(191): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\administrator\source\repos\p02\p02\demo.cpp(193): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  P02.vcxproj -> C:\Users\Administrator\source\repos\P02\Debug\P02.exe
