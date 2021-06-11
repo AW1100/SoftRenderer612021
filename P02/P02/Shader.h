@@ -7,6 +7,7 @@
 #include "Util.h"
 
 #include <algorithm>
+#include <random>
 
 class Shader
 {
@@ -25,7 +26,6 @@ public:
 
 public:
 	Mat4 m_WVP;
-
 	Mat4 m_world;
 	Mat4 m_worldInvTranspose;
 	

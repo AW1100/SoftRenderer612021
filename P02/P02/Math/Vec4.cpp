@@ -95,10 +95,10 @@ Vec4 Vec4::normalize()
 
 Vec4 Vec4::transform(const Mat4& m) const
 {
-	return Vec4(x * m.m[0][0] + y * m.m[1][0] + z * m.m[2][0] + w * m.m[3][0],
-		x * m.m[0][1] + y * m.m[1][1] + z * m.m[2][1] + w * m.m[3][1],
-		x * m.m[0][2] + y * m.m[1][2] + z * m.m[2][2] + w * m.m[3][2],
-		x * m.m[0][3] + y * m.m[1][3] + z * m.m[2][3] + w * m.m[3][3]
+	return Vec4(x * m.m[0][0] + y * m.m[0][1] + z * m.m[0][2] + w * m.m[0][3],
+		x * m.m[1][0] + y * m.m[1][1] + z * m.m[1][2] + w * m.m[1][3],
+		x * m.m[2][0] + y * m.m[2][1] + z * m.m[2][2] + w * m.m[2][3],
+		x * m.m[3][0] + y * m.m[3][1] + z * m.m[3][2] + w * m.m[3][3]
 	);
 }
 

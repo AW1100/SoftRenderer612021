@@ -8,10 +8,9 @@
 
 HINSTANCE				g_hInstance;				//实例句柄
 static HWND				g_hWnd;					//窗口句柄
-int						g_width = 800;			//窗口大小
-int						g_height = 600;
-
-std::shared_ptr<Demo> g_pDemo = std::make_shared<Demo>();
+int						g_width = 1000;			//窗口大小
+int						g_height = 750;
+std::shared_ptr<Demo> g_demo = std::make_shared<Demo>();
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -37,7 +36,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	if (!RegisterClassEx(&wcex))
 		return 0;
 
-	RECT rc = { 0, 0, 800, 600 };
+	RECT rc = { 0, 0, g_width, g_height };
 	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, false);
 
 	HWND g_hWnd = CreateWindowEx(WS_EX_APPWINDOW, L"D3D", L"D3D", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
@@ -50,7 +49,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	}
 
 	ShowWindow(g_hWnd, nShowCmd);
-
+	//消息循环
 	MSG msg;
 	ZeroMemory(&msg, sizeof(msg));
 	while (msg.message != WM_QUIT)
@@ -62,8 +61,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		}
 		else
 		{
-			g_pDemo->Update(0.0);
-			g_pDemo->Render();
+			g_demo->Update(0.0);
+			g_demo->Render();
 			InvalidateRect(g_hWnd, nullptr, true);
 			UpdateWindow(g_hWnd);
 		}
@@ -88,7 +87,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_CREATE:
 	{
-		g_pDemo->init(g_hInstance, hWnd);
+		g_demo->init(g_hInstance, hWnd);
 		//初始化设备无关位图header
 		BITMAPINFOHEADER bmphdr = { 0 };
 		bmphdr.biSize = sizeof(BITMAPINFOHEADER);
@@ -103,9 +102,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		//获得前置缓冲区dc
 		HDC hdc = GetDC(hWnd);
 		if (!(s_hBitmap = CreateDIBSection(nullptr, (PBITMAPINFO)&bmphdr, DIB_RGB_COLORS,
-			reinterpret_cast<void**>(&g_pDemo->GetDevice()->getFrameBuffer()), nullptr, 0)))
+			reinterpret_cast<void**>(&g_demo->GetDevice()->getFrameBuffer()), nullptr, 0)))
 		{
-			MessageBox(nullptr, L"create dib section failed!", L"error", MB_OK);
+			MessageBox(nullptr, L"DIB section Creation Failed!", L"ERROR", MB_OK);
 			return 0;
 		}
 		//将bitmap装入内存dc
@@ -138,19 +137,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_LBUTTONDOWN:
 	case WM_MBUTTONDOWN:
 	case WM_RBUTTONDOWN:
-		g_pDemo->OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		g_demo->OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 
 		//鼠标释放时
 	case WM_LBUTTONUP:
 	case WM_MBUTTONUP:
 	case WM_RBUTTONUP:
-		g_pDemo->OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		g_demo->OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 
 		//鼠标移动时
 	case WM_MOUSEMOVE:
-		g_pDemo->OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		g_demo->OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 	case WM_MOUSEWHEEL:
 

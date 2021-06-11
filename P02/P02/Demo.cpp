@@ -11,7 +11,7 @@
 
 using namespace Util;
 
-Demo::Demo() :m_theta(1.5f * PI), m_phi(0.4*PI), m_radius(5.0f)
+Demo::Demo() :m_theta(0.75 * PI), m_phi(0.5*PI), m_radius(4.0)
 {
 	m_lastMousePos.x = 0;
 	m_lastMousePos.y = 0;
@@ -23,7 +23,12 @@ Demo::Demo() :m_theta(1.5f * PI), m_phi(0.4*PI), m_radius(5.0f)
 
 Demo::~Demo()
 {
-	Clear();
+	if (m_pDevice)
+		delete m_pDevice;
+	if (m_pImmediateContext)
+		delete m_pImmediateContext;
+	if (m_pShader)
+		delete m_pShader;
 }
 
 bool Demo::init(HINSTANCE hInstance, HWND hWnd)
@@ -61,7 +66,7 @@ void Demo::Update(double dt)
 	double y = m_radius * cosf(m_phi);
 
 	Vec4 pos(x, y, z, 1.0);
-	Vec4 lookAt(0.0, 0.0, 0.0, 1.0);
+	Vec4 lookAt(0.0, 2.0, 0.0, 1.0);
 	Vec4 up(0.0, 1.0, 0.0, 0.0);
 
 	Camera camera(pos, lookAt, up);
@@ -70,9 +75,17 @@ void Demo::Update(double dt)
 	Mat4 proj = getProjectionMatrix(PI / 4, m_pDevice->getClientWidth() /
 		static_cast<double>(m_pDevice->getClientHeight()), 1.0, 100.0);
 
-	Mat4 world(0.005);
-	m_worldViewProj = world * view*proj;
+	Mat4 world(0.006);
+	Mat4 translate(1.0);
+	translate.m[3][1] = 3;
+	//Mat4 rotation(1.0);
+	//rotation.m[1][1] = cos(45);
+	//rotation.m[1][2] = -sin(45);
+	//rotation.m[2][1] = sin(45);
+	//rotation.m[2][2] = cos(45);
+	world = world * translate;
 	m_world = world;
+	m_worldViewProj = m_world * view*proj;
 
 	//¼ÆËãÄæ¾ØÕóµÄ×ªÖÃ
 	m_worldInvTranspose = transposeMatrix(inverseMatrix(world));
@@ -93,16 +106,6 @@ void Demo::Render()
 	m_pShader->setWorldInvTranspose(m_worldInvTranspose);
 
 	m_pImmediateContext->drawIndexed();
-}
-
-void Demo::Clear()
-{
-	if (m_pDevice)
-		delete m_pDevice;
-	if (m_pImmediateContext)
-		delete m_pImmediateContext;
-	if (m_pShader)
-		delete m_pShader;
 }
 
 void Demo::OnMouseDown(WPARAM btnState, int x, int y)
@@ -137,7 +140,7 @@ void Demo::OnMouseMove(WPARAM btnState, int x, int y)
 
 		m_radius += dx - dy;
 
-		m_radius = clamp(m_radius, 3.0f, 300.0f);
+		m_radius = clamp(m_radius, 3.0, 300.0);
 	}
 
 	m_lastMousePos.x = x;

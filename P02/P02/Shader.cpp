@@ -45,26 +45,21 @@ VertexOut Shader::vertexShader(const VertexIn& vin)
 
 Vec4 Shader::pixelShader(VertexOut& pin)
 {
-	pin.normal.normalize();
+	pin.normal = pin.normal.normalize();
 	Vec4 lightColor(1.0, 1.0, 1.0);
 	Vec4 toEye = (camera.eyePos - pin.fragPos).normalize();
-
-	double ambientStrength = 0.1;
-	Vec4 ambient = lightColor * ambientStrength;
-
-	Vec4 norm = pin.normal;
-	Vec4 lightDir(0.0, 0.0, 1.0);
-	double diff = max(pin.normal.dot(lightDir), 0.0);
-	Vec4 diffuse = lightColor * diff;
 	
-	double specularStrength = 1.5;
-	Vec4 viewDir = (camera.eyePos - pin.fragPos).normalize();
-	Vec4 reflectDir = Util::reflect(lightDir*(-1), pin.normal);
-	double spec = pow(max(viewDir.dot(reflectDir), 0.0), 64);
-	Vec4 specular = lightColor * specularStrength * spec;
+	//Vec4 lightDir(1.0, 0.0, 0.0, 0.0);
+	Vec4 ambient(0.1,0.1,0.1);
 
-	Vec4 result = (ambient + diffuse + specular) * pin.color;
+	Vec4 r = Util::reflect(toEye*(-1), pin.normal);
+	double cosAlpha = Util::clamp(toEye.dot(r), 0, 1);
 
-
+	double cosTheta = Util::clamp(toEye.dot(pin.normal), 0, 1);
+	Vec4 result = lightColor * cosTheta + ambient + lightColor * pow(cosAlpha, 5);
+	
+	
+	//Vec4 result = pin.color;
+	//result = result * rand();
 	return result;
 }

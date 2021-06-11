@@ -15,15 +15,7 @@ Device::Device(int width, int height)
 
 Device::~Device()
 {
-	if (m_pFramebuffer)
-		delete m_pFramebuffer;
-	if (m_zBuffer)
-	{
-		for (int i = 0; i < m_width; i++)
-		{
-			delete[] m_zBuffer[i];
-		}
-	}
+	
 }
 
 void Device::DrawPixel(int x, int y, Vec4 color)

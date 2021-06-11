@@ -19,7 +19,6 @@ public:
 	bool init(HINSTANCE hInstance, HWND hWnd);
 	void Update(double dt);
 	void Render();
-	void Clear();
 
 	//鼠标事件控制
 	void OnMouseDown(WPARAM btnState, int x, int y);

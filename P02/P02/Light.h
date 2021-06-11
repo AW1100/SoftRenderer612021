@@ -7,6 +7,7 @@ public:
 	
 public:
 	double strength;
+	Vec4 color;
 	Vec4 diffuse;
 	Vec4 specular;
 
