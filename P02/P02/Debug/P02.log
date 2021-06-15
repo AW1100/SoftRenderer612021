@@ -1,16 +1,2 @@
 ﻿  Demo.cpp
-c:\users\administrator\source\repos\p02\p02\demo.cpp(14): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-c:\users\administrator\source\repos\p02\p02\demo.cpp(131): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
-c:\users\administrator\source\repos\p02\p02\demo.cpp(132): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-c:\users\administrator\source\repos\p02\p02\demo.cpp(134): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\administrator\source\repos\p02\p02\demo.cpp(141): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-c:\users\administrator\source\repos\p02\p02\demo.cpp(143): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-  DeviceContext.cpp
-c:\users\administrator\source\repos\p02\p02\devicecontext.cpp(160): warning C4244: 'argument': conversion from 'const double' to 'int', possible loss of data
-c:\users\administrator\source\repos\p02\p02\devicecontext.cpp(161): warning C4244: 'argument': conversion from 'const double' to 'int', possible loss of data
-c:\users\administrator\source\repos\p02\p02\devicecontext.cpp(162): warning C4244: 'argument': conversion from 'const double' to 'int', possible loss of data
-c:\users\administrator\source\repos\p02\p02\devicecontext.cpp(186): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-  main.cpp
-  Shader.cpp
-  Generating Code...
-  P02.vcxproj -> C:\Users\Administrator\source\repos\P02\Debug\P02.exe
+  P02.vcxproj -> C:\Users\Administrator\source\repos\wanghaoran\P02\Debug\P02.exe

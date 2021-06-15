@@ -7,6 +7,10 @@
 class TextureReader
 {
 public:
+	TextureReader()
+	{
+		colorArray.reserve(4194304);
+	}
 	void textureToColorArray();
 
 

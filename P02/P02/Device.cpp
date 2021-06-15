@@ -15,7 +15,7 @@ Device::Device(int width, int height)
 
 Device::~Device()
 {
-	
+
 }
 
 void Device::DrawPixel(int x, int y, Vec4 color)

@@ -8,6 +8,8 @@
 #include <cmath>
 #include <windows.h>
 
+enum class RENDER_MODE { WIREFRAME = 0, SOLID_NO_LIGHT = 1, SOLID_WITH_LIGHT = 2, TEXTURE = 3 };
+
 namespace Util
 {
 	extern const double PI;

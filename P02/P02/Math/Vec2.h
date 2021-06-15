@@ -8,7 +8,7 @@ public:
 	Vec2(const Vec2& rhs);
 	Vec2& operator=(const Vec2& rhs);
 	Vec2 operator-(const Vec2& rhs);
-	Vec2 operator*(const float s);
+	Vec2 operator*(const double s);
 	Vec2 operator+(const Vec2& rhs);
 
 public:

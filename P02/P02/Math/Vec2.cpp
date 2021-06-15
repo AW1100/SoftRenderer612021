@@ -27,7 +27,7 @@ Vec2 Vec2::operator-(const Vec2& rhs)
 	return Vec2(x - rhs.x, y - rhs.y);
 }
 
-Vec2 Vec2::operator*(const float s)
+Vec2 Vec2::operator*(const double s)
 {
 	return Vec2(x*s, y*s);
 }

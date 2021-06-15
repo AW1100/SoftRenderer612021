@@ -1,11 +1,10 @@
 #include "DeviceContext.h"
 #include <algorithm>
 #include "Vertex.h"
-#include "Util.h"
 
 using namespace Util;
 
-DeviceContext::DeviceContext() :m_renderMode(WIREFRAME)
+DeviceContext::DeviceContext() :m_renderMode(RENDER_MODE::WIREFRAME)
 {
 }
 
@@ -16,7 +15,7 @@ DeviceContext::~DeviceContext()
 
 void DeviceContext::init(Device* pDevice)
 {
-	m_pDevice = pDevice;
+	m_device = pDevice;
 }
 
 //设置渲染模式
@@ -28,21 +27,29 @@ void DeviceContext::setRenderMode(RENDER_MODE mode)
 //设置着色器
 void DeviceContext::setShader(Shader* s)
 {
-	m_pShader = s;
+	m_shader = s;
 }
 
 //绘制顶点缓冲中的三角形
 void DeviceContext::drawIndexed()
 {
 	//得到屏幕变换矩阵
-	Mat4 screenTransformMat = screenTransform(m_pDevice->getClientWidth(),
-		m_pDevice->getClientHeight());
+	Mat4 screenTransformMat = screenTransform(m_device->getClientWidth(),
+		m_device->getClientHeight());
+	
 
-	for (unsigned int i = 0; i < obj->indices.size(); i=i+6)
+	for (unsigned int i = 0; i < m_obj->indices.size(); i=i+9)
 	{
-		VertexIn p1(obj->pos[obj->indices[i] - 1], Vec4(0.0, 1.0, 1.0), obj->normal[obj->indices[i + 1] - 1]);
-		VertexIn p2(obj->pos[obj->indices[i+2] - 1], Vec4(0.0, 1.0, 1.0), obj->normal[obj->indices[i + 3] - 1]);
-		VertexIn p3(obj->pos[obj->indices[i+4] - 1], Vec4(0.0, 1.0, 1.0), obj->normal[obj->indices[i + 5] - 1]);
+		Vec2 uv1 = m_obj->uv[m_obj->indices[i + 1]-1]*2048;
+		Vec2 uv2 = m_obj->uv[m_obj->indices[i + 4]-1]*2048;
+		Vec2 uv3 = m_obj->uv[m_obj->indices[i + 7]-1]*2048;
+		int uv1Loc = static_cast<int>(uv1.y * 2048) + static_cast<int>(uv1.x);
+		int uv2Loc = static_cast<int>(uv2.y * 2048) + static_cast<int>(uv2.x);
+		int uv3Loc = static_cast<int>(uv3.y * 2048) + static_cast<int>(uv3.x);
+		//Vec4 c(0.5, 0.5, 0.5);
+		VertexIn p1(m_obj->pos[m_obj->indices[i] - 1], m_texture.colorArray[uv1Loc], m_obj->normal[m_obj->indices[i + 2] - 1]);
+		VertexIn p2(m_obj->pos[m_obj->indices[i+3] - 1], m_texture.colorArray[uv2Loc], m_obj->normal[m_obj->indices[i + 5] - 1]);
+		VertexIn p3(m_obj->pos[m_obj->indices[i+6] - 1], m_texture.colorArray[uv3Loc], m_obj->normal[m_obj->indices[i + 8] - 1]);
 		//背面消隐
 		if (backFaceCulling(p1, p2, p3) == false)
 		{
@@ -79,31 +86,31 @@ void DeviceContext::drawIndexed()
 //转化到cvv
 void DeviceContext::toCVV(VertexOut& v)
 {
-	v.postPos.x /= v.postPos.w;
-	v.postPos.y /= v.postPos.w;
-	v.postPos.z /= v.postPos.w;
-	v.postPos.w = 1;
+	v.fragPos.x /= v.fragPos.w;
+	v.fragPos.y /= v.fragPos.w;
+	v.fragPos.z /= v.fragPos.w;
+	v.fragPos.w = 1;
 }
 
 //简单cvv裁剪
-bool DeviceContext::clip(const VertexOut& v)
+bool DeviceContext::clip(VertexOut& v)
 {
 	//cvv为 x-1,1  y-1,1  z0,1
-	if (v.postPos.x >= -v.postPos.w && v.postPos.x <= v.postPos.w &&
-		v.postPos.y >= -v.postPos.w && v.postPos.y <= v.postPos.w &&
-		v.postPos.z >= 0.0 && v.postPos.z <= v.postPos.w)
+	if (v.fragPos.x >= -v.fragPos.w && v.fragPos.x <= v.fragPos.w &&
+		v.fragPos.y >= -v.fragPos.w && v.fragPos.y <= v.fragPos.w &&
+		v.fragPos.z >= 0.0 && v.fragPos.z <= v.fragPos.w)
 	{
 		return true;
 	}
-	return false;
+	return false;	
 }
 
 //转到齐次裁剪空间
 VertexOut DeviceContext::transformToProj(const VertexIn& v)
 {
-	VertexOut out = m_pShader->vertexShader(v);
+	VertexOut out = m_shader->vertexShader(v);
 	//设置oneOverZ
-	out.oneOverZ = 1 / out.postPos.w;
+	out.oneOverZ = 1 / out.fragPos.w;
 	//由于1/z和x,y成线性关系
 	//这里将需要插值的信息都乘以1/z 得到 s/z和t/z等，方便光栅化阶段进行插值
 	out.color.x *= out.oneOverZ;
@@ -123,14 +130,14 @@ VertexOut DeviceContext::transformToProj(const VertexIn& v)
 //转换到屏幕坐标
 void DeviceContext::transformToScreen(const Mat4& m, VertexOut& v)
 {
-	v.postPos = v.postPos * m;
+	v.fragPos = v.fragPos * m;
 }
 
 //背面消隐
 bool DeviceContext::backFaceCulling(const VertexIn& v1, const VertexIn& v2, const VertexIn& v3)
 {
 	//线框模式不进行背面消隐
-	if (m_renderMode == WIREFRAME)
+	if (m_renderMode == RENDER_MODE::WIREFRAME)
 	{
 		return true;
 	}
@@ -142,7 +149,7 @@ bool DeviceContext::backFaceCulling(const VertexIn& v1, const VertexIn& v2, cons
 		//叉积得到的方向与右手系一致
 		Vec4 normal = vector1.cross(vector2);
 
-		Vec4 viewDir = v1.pos - m_pShader->camera.eyePos;
+		Vec4 viewDir = v1.pos - m_shader->m_camera.eyePos;
 		if (normal.dot(viewDir) < 0)
 		{
 			return true;
@@ -155,14 +162,15 @@ bool DeviceContext::backFaceCulling(const VertexIn& v1, const VertexIn& v2, cons
 void DeviceContext::drawTriangle(const VertexOut& v1, const VertexOut& v2, const VertexOut& v3)
 {
 	//线框模式
-	if (m_renderMode == WIREFRAME)
+	if (m_renderMode == RENDER_MODE::WIREFRAME)
 	{
-		drawLine(v1.postPos.x, v1.postPos.y, v2.postPos.x, v2.postPos.y);
-		drawLine(v1.postPos.x, v1.postPos.y, v3.postPos.x, v3.postPos.y);
-		drawLine(v2.postPos.x, v2.postPos.y, v3.postPos.x, v3.postPos.y);
+		drawLine((int)v1.fragPos.x, (int)v1.fragPos.y, (int)v2.fragPos.x, (int)v2.fragPos.y);
+		drawLine((int)v1.fragPos.x, (int)v1.fragPos.y, (int)v3.fragPos.x, (int)v3.fragPos.y);
+		drawLine((int)v2.fragPos.x, (int)v2.fragPos.y, (int)v3.fragPos.x, (int)v3.fragPos.y);
 	}
-	else if (m_renderMode == SOLID)
+	else
 	{
+		m_shader->render_mode = m_renderMode;
 		triangleRasterization(v1, v2, v3);
 	}
 
@@ -183,7 +191,7 @@ void DeviceContext::drawLine(int x1, int y1, int x2, int y2)
 	double y = y1;
 	for (int i = 0; i <= epsl; i++)
 	{
-		m_pDevice->DrawPixel(x, y, Vec4(0.0, 1.0, 0.0, 1.0));
+		m_device->DrawPixel((int)x, (int)y, Vec4(0.0, 1.0, 0.0, 1.0));
 		x += stepX;
 		y += stepY;
 	}
@@ -226,8 +234,8 @@ void DeviceContext::drawLine(int x1, int y1, int x2, int y2)
 		int error = deltaY - dx;
 		for (int i = 0; i <= dx; ++i)
 		{
-			if (x1 >= 0 && x1 < m_pDevice->getClientWidth() && y1 >= 0 && y1 < m_pDevice->getClientHeight())
-				m_pDevice->DrawPixel(x1, y1, Vec4(1.0, 1.0, 1.0, 1.0));
+			if (x1 >= 0 && x1 < m_device->getClientWidth() && y1 >= 0 && y1 < m_device->getClientHeight())
+				m_device->DrawPixel(x1, y1, Vec4(1.0, 1.0, 1.0, 1.0));
 			if (error >= 0)
 			{
 				error -= deltaX;
@@ -242,8 +250,8 @@ void DeviceContext::drawLine(int x1, int y1, int x2, int y2)
 		int error = deltaX - dy;
 		for (int i = 0; i <= dy; i++)
 		{
-			if (x1 >= 0 && x1 < m_pDevice->getClientWidth() && y1 >= 0 && y1 < m_pDevice->getClientHeight())
-				m_pDevice->DrawPixel(x1, y1, Vec4(1.0, 1.0, 1.0, 1.0));
+			if (x1 >= 0 && x1 < m_device->getClientWidth() && y1 >= 0 && y1 < m_device->getClientHeight())
+				m_device->DrawPixel(x1, y1, Vec4(1.0, 1.0, 1.0, 1.0));
 			if (error >= 0)
 			{
 				error -= deltaY;
@@ -259,34 +267,34 @@ void DeviceContext::drawLine(int x1, int y1, int x2, int y2)
 //left 左端点  right 右端点
 void DeviceContext::scanLineFill(const VertexOut& left, const VertexOut& right, int yIndex)
 {
-	double dx = right.postPos.x - left.postPos.x;
+	double dx = right.fragPos.x - left.fragPos.x;
 
-	for (double x = left.postPos.x; x <= right.postPos.x; x += 1.0)
+	for (double x = left.fragPos.x; x <= right.fragPos.x; x += 1.0)
 	{
 		//四舍五入
 		int xIndex = static_cast<int>(x + 0.5);
 
-		if (xIndex >= 0 && xIndex < m_pDevice->getClientWidth())
+		if (xIndex >= 0 && xIndex < m_device->getClientWidth())
 		{
 			//插值系数
 			double lerpFactor = 0;
 			if (dx != 0)
 			{
-				lerpFactor = (x - left.postPos.x) / dx;
+				lerpFactor = (x - left.fragPos.x) / dx;
 			}
 
 			//深度测试
 			//1/z’与x’和y'是线性关系的
 			double oneOverZ = Lerp(left.oneOverZ, right.oneOverZ, lerpFactor);
-			if (oneOverZ >= m_pDevice->getZ(xIndex, yIndex))
+			if (oneOverZ >= m_device->getZ(xIndex, yIndex))
 			{
-				m_pDevice->setZ(xIndex, yIndex, oneOverZ);
+				m_device->setZ(xIndex, yIndex, oneOverZ);
 
 				double w = 1 / oneOverZ;
 				//插值顶点 原先需要插值的信息均乘以oneOverZ
 				//现在得到插值后的信息需要除以oneOverZ得到真实值
 				VertexOut out = Lerp(left, right, lerpFactor);
-				out.postPos.y = yIndex;
+				out.fragPos.y = yIndex;
 				//out.tex.u *= w;
 				//out.tex.v *= w;
 				out.normal.x *= w;
@@ -296,7 +304,7 @@ void DeviceContext::scanLineFill(const VertexOut& left, const VertexOut& right, 
 				out.color.y *= w;
 				out.color.z *= w;
 				//画像素点颜色
-				m_pDevice->DrawPixel(xIndex, yIndex, m_pShader->pixelShader(out));
+				m_device->DrawPixel(xIndex, yIndex, m_shader->pixelShader(out));
 			}
 		}
 	}
@@ -308,20 +316,20 @@ void DeviceContext::scanLineFill(const VertexOut& left, const VertexOut& right, 
 void DeviceContext::drawTriangleTop(const VertexOut& v1, const VertexOut& v2, const VertexOut& v3)
 {
 	double dy = 0;//每次y增加一个像素
-	for (double y = v1.postPos.y; y <= v3.postPos.y; y += 1.0)
+	for (double y = v1.fragPos.y; y <= v3.fragPos.y; y += 1.0)
 	{
 		//四舍五入
 		int yIndex = static_cast<int>(y + 0.5f);
-		if (yIndex >= 0 && yIndex < m_pDevice->getClientHeight())
+		if (yIndex >= 0 && yIndex < m_device->getClientHeight())
 		{
-			double t = dy / (v3.postPos.y - v1.postPos.y);
+			double t = dy / (v3.fragPos.y - v1.fragPos.y);
 
 			//插值生成左右顶点
 			VertexOut new1 = Lerp(v1, v3, t);
 			VertexOut new2 = Lerp(v2, v3, t);
 			dy += 1.0;
 			//扫描线填充
-			if (new1.postPos.x < new2.postPos.x)
+			if (new1.fragPos.x < new2.fragPos.x)
 			{
 				scanLineFill(new1, new2, yIndex);
 			}
@@ -338,14 +346,14 @@ void DeviceContext::drawTriangleTop(const VertexOut& v1, const VertexOut& v2, co
 void DeviceContext::drawTriangleBottom(const VertexOut& v1, const VertexOut& v2, const VertexOut& v3)
 {
 	double dy = 0;//每次y增加一个像素
-	for (double y = v1.postPos.y; y <= v2.postPos.y; y += 1.0)
+	for (double y = v1.fragPos.y; y <= v2.fragPos.y; y += 1.0)
 	{
 		//四舍五入
 		int yIndex = static_cast<int>(y + 0.5f);
 
-		if (yIndex >= 0 && yIndex < m_pDevice->getClientHeight())
+		if (yIndex >= 0 && yIndex < m_device->getClientHeight())
 		{
-			double t = dy / (v2.postPos.y - v1.postPos.y);
+			double t = dy / (v2.fragPos.y - v1.fragPos.y);
 
 			//插值左右顶点
 			VertexOut new1 = Lerp(v1, v2, t);
@@ -353,7 +361,7 @@ void DeviceContext::drawTriangleBottom(const VertexOut& v1, const VertexOut& v2,
 			dy += 1.0;
 
 			//扫描线填充
-			if (new1.postPos.x < new2.postPos.x)
+			if (new1.fragPos.x < new2.fragPos.x)
 			{
 				scanLineFill(new1, new2, yIndex);
 			}
@@ -369,9 +377,9 @@ void DeviceContext::drawTriangleBottom(const VertexOut& v1, const VertexOut& v2,
 void DeviceContext::triangleRasterization(const VertexOut& v1, const VertexOut& v2, const VertexOut& v3)
 {
 	//判断是否是平底或者平顶三角形
-	if (v1.postPos.y == v2.postPos.y)
+	if (v1.fragPos.y == v2.fragPos.y)
 	{
-		if (v1.postPos.y < v3.postPos.y)
+		if (v1.fragPos.y < v3.fragPos.y)
 		{//平顶
 			drawTriangleTop(v1, v2, v3);
 		}
@@ -380,9 +388,9 @@ void DeviceContext::triangleRasterization(const VertexOut& v1, const VertexOut& 
 			drawTriangleBottom(v3, v1, v2);
 		}
 	}
-	else if (v1.postPos.y == v3.postPos.y)
+	else if (v1.fragPos.y == v3.fragPos.y)
 	{
-		if (v1.postPos.y < v2.postPos.y)
+		if (v1.fragPos.y < v2.fragPos.y)
 		{//平顶
 			drawTriangleTop(v1, v3, v2);
 		}
@@ -391,9 +399,9 @@ void DeviceContext::triangleRasterization(const VertexOut& v1, const VertexOut& 
 			drawTriangleBottom(v2, v1, v3);
 		}
 	}
-	else if (v2.postPos.y == v3.postPos.y)
+	else if (v2.fragPos.y == v3.fragPos.y)
 	{
-		if (v2.postPos.y < v1.postPos.y)
+		if (v2.fragPos.y < v1.fragPos.y)
 		{//平顶
 			drawTriangleTop(v2, v3, v1);
 		}
@@ -408,20 +416,20 @@ void DeviceContext::triangleRasterization(const VertexOut& v1, const VertexOut& 
 		//根据y值将三个顶点排序
 		std::vector<VertexOut> vertices{ v1,v2,v3 };
 		std::sort(vertices.begin(), vertices.end(), [](VertexOut v1, VertexOut v2) {
-			return v1.postPos.y < v2.postPos.y; });
+			return v1.fragPos.y < v2.fragPos.y; });
 		VertexOut top = vertices[0];
 		VertexOut middle = vertices[1];
 		VertexOut bottom = vertices[2];
 
 		//插值求中间点
-		double middleX = (middle.postPos.y - top.postPos.y) * (bottom.postPos.x - top.postPos.x) /
-			(bottom.postPos.y - top.postPos.y) + top.postPos.x;
-		double dy = middle.postPos.y - top.postPos.y;
-		double t = dy / (bottom.postPos.y - top.postPos.y);
+		double middleX = (middle.fragPos.y - top.fragPos.y) * (bottom.fragPos.x - top.fragPos.x) /
+			(bottom.fragPos.y - top.fragPos.y) + top.fragPos.x;
+		double dy = middle.fragPos.y - top.fragPos.y;
+		double t = dy / (bottom.fragPos.y - top.fragPos.y);
 
 		VertexOut newMiddle = Lerp(top, bottom, t);
-		newMiddle.postPos.x = middleX;
-		newMiddle.postPos.y = middle.postPos.y;
+		newMiddle.fragPos.x = middleX;
+		newMiddle.fragPos.y = middle.fragPos.y;
 
 		//平顶
 		drawTriangleTop(middle, newMiddle, bottom);

@@ -4,10 +4,16 @@
 #include "Util.h"
 #include "ObjReader.h"
 #include "Camera.h"
+#include "Light.h"
+#include "Material.h"
+#include "TextureReader.h"
 
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <timeapi.h>
+
+#pragma comment( lib,"winmm.lib" )
 
 using namespace Util;
 
@@ -18,6 +24,9 @@ Demo::Demo() :m_theta(0.75 * PI), m_phi(0.5*PI), m_radius(4.0)
 
 	m_world = Mat4(1.0);
 
+	m_pos = Vec4(m_radius * sin(m_phi) * cos(m_theta), m_radius * sin(m_phi) * sin(m_theta), m_radius * cos(m_phi), 1.0);
+	m_lookAt = Vec4(0.0, 2.0, 0.0, 1.0);
+	m_zoomSpeed = 1.0;
 }
 
 
@@ -46,43 +55,54 @@ bool Demo::init(HINSTANCE hInstance, HWND hWnd)
 	m_pShader = new Shader();
 
 	// 读取obj文件
-	std::string filePath = "../deer.obj";
+	std::string filePath = "../ms.obj";
 	ObjReader* obj = new ObjReader;
 	obj->readObjectFile(filePath);
-	
-	m_pImmediateContext->setObjModel(obj);
+	int count = static_cast<int>(obj->uv.size());
 
+	TextureReader tr;
+	tr.textureToColorArray();
+
+	m_pImmediateContext->setObjModel(obj);
+	m_pImmediateContext->setTexture(tr);
 	//设置着色器
 	m_pImmediateContext->setShader(m_pShader);
+	std::shared_ptr<Light> ambient = std::make_shared<Ambient>(0.05);
+	std::shared_ptr<Light> directional = std::make_shared<Directional>(0.5, Vec4(0.0,0.0,-1.0));
+	m_pShader->setLight(ambient);
+	m_pShader->setLight(directional);
+	Material material;
+	m_pShader->setMaterial(material);
 
 	return true;
 }
 
-void Demo::Update(double dt)
+void Demo::update(double dt)
 {
 
-	double x = m_radius * sinf(m_phi) * cosf(m_theta);
-	double z = m_radius * sinf(m_phi) * sinf(m_theta);
-	double y = m_radius * cosf(m_phi);
-
-	Vec4 pos(x, y, z, 1.0);
-	Vec4 lookAt(0.0, 2.0, 0.0, 1.0);
+	double x = m_radius * sin(m_phi) * cos(m_theta) * m_zoomSpeed;
+	double z = m_radius * sin(m_phi) * sin(m_theta) * m_zoomSpeed;
+	double y = m_radius * cos(m_phi) * m_zoomSpeed;
+	m_radius *= m_zoomSpeed;
+	m_zoomSpeed = 1.0;
+	m_pos =Vec4(x, y, z, 1.0);
+	m_lookAt = Vec4(0.0, 2.0, 0.0, 1.0);
 	Vec4 up(0.0, 1.0, 0.0, 0.0);
-
-	Camera camera(pos, lookAt, up);
+	
+	Camera camera(m_pos, m_lookAt, up);
 
 	Mat4 view = getViewMatrix(camera);
 	Mat4 proj = getProjectionMatrix(PI / 4, m_pDevice->getClientWidth() /
 		static_cast<double>(m_pDevice->getClientHeight()), 1.0, 100.0);
 
-	Mat4 world(0.006);
+	Mat4 world(0.3);
 	Mat4 translate(1.0);
-	translate.m[3][1] = 3;
-	//Mat4 rotation(1.0);
-	//rotation.m[1][1] = cos(45);
-	//rotation.m[1][2] = -sin(45);
-	//rotation.m[2][1] = sin(45);
-	//rotation.m[2][2] = cos(45);
+	translate.m[3][1] = 0.6;
+	Mat4 rotation(1.0);
+	rotation.m[0][0] = cos(90);
+	rotation.m[0][1] = -sin(90);
+	rotation.m[1][0] = sin(90);
+	rotation.m[1][1] = cos(90);
 	world = world * translate;
 	m_world = world;
 	m_worldViewProj = m_world * view*proj;
@@ -96,47 +116,50 @@ void Demo::Update(double dt)
 void Demo::Render()
 {
 	//清空后缓冲图片
-	m_pDevice->clearBuffer(Vec4(0.0, 0.0, 0.0, 1.0));
+	m_pDevice->clearBuffer(Vec4(0.1, 0.1, 0.1, 1.0));
 
 	//设置渲染状态
-	m_pImmediateContext->setRenderMode(SOLID);
+	m_pImmediateContext->setRenderMode(RM);
 	//设置着色器变量
 	m_pShader->setWorldViewProj(m_worldViewProj);
 	m_pShader->setWorld(m_world);
 	m_pShader->setWorldInvTranspose(m_worldInvTranspose);
 
 	m_pImmediateContext->drawIndexed();
+	
 }
 
-void Demo::OnMouseDown(WPARAM btnState, int x, int y)
+
+
+void Demo::onMouseDown(WPARAM btnState, int x, int y)
 {
 	m_lastMousePos.x = x;
 	m_lastMousePos.y = y;
 	SetCapture(m_hWnd);
 }
 
-void Demo::OnMouseUp(WPARAM btnState, int x, int y)
+void Demo::onMouseUp(WPARAM btnState, int x, int y)
 {
 	ReleaseCapture();
 }
 
-void Demo::OnMouseMove(WPARAM btnState, int x, int y)
+void Demo::onMouseMove(WPARAM btnState, int x, int y)
 {
 	if ((btnState & MK_LBUTTON) != 0)
 	{
 		//角度转弧度
-		double dx = degreeToRadian(0.25f*static_cast<double>(x - m_lastMousePos.x));
-		double dy = degreeToRadian(0.25f*static_cast<double>(y - m_lastMousePos.y));
+		double dx = degreeToRadian(0.25*static_cast<double>(x - m_lastMousePos.x));
+		double dy = degreeToRadian(0.25*static_cast<double>(y - m_lastMousePos.y));
 
 		m_theta -= dx;
 		m_phi += dy;
 
-		m_phi = clamp(m_phi, 0.1f, PI - 0.1f);
+		m_phi = clamp(m_phi, 0.1, PI - 0.1);
 	}
 	else if ((btnState & MK_RBUTTON) != 0)
 	{
-		double dx = 0.2f*static_cast<double>(x - m_lastMousePos.x);
-		double dy = 0.2f*static_cast<double>(y - m_lastMousePos.y);
+		double dx = 0.2*static_cast<double>(x - m_lastMousePos.x);
+		double dy = 0.2*static_cast<double>(y - m_lastMousePos.y);
 
 		m_radius += dx - dy;
 
@@ -147,7 +170,31 @@ void Demo::OnMouseMove(WPARAM btnState, int x, int y)
 	m_lastMousePos.y = y;
 }
 
-void Demo::OnWheelScroll(WPARAM p)
+void Demo::onWheelScroll(int p)
 {
-	
+	if (p > 0)
+	{
+		m_zoomSpeed = 0.9;
+	}
+	else
+	{
+		m_zoomSpeed = 1.1;
+	}
+}
+
+void Demo::onKeyPressed(int f)
+{
+	if (f == 1)
+	{
+		RM = RENDER_MODE::WIREFRAME;
+	}
+	else if (f == 2)
+	{
+		RM = RENDER_MODE::SOLID_NO_LIGHT;
+	}
+	else if (f == 3)
+	{
+		RM = RENDER_MODE::SOLID_WITH_LIGHT;
+	}
+	//m_pDevice->clearBuffer(Vec4(0.1, 0.1, 0.1, 1.0));
 }

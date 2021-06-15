@@ -47,8 +47,8 @@ Vec2 Util::Lerp(const Vec2& v1, const Vec2& v2, double t)
 VertexOut Util::Lerp(const VertexOut& v1, const VertexOut& v2, double t)
 {
 	return VertexOut(
+		Lerp(v1.worldPos, v2.worldPos, t),
 		Lerp(v1.fragPos, v2.fragPos, t),
-		Lerp(v1.postPos, v2.postPos, t),
 		//Lerp(v1.tex, v2.tex, t),
 		Lerp(v1.normal, v2.normal, t),
 		Lerp(v1.color, v2.color, t),

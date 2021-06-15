@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 
+
 class ObjReader
 {
 public:
@@ -14,5 +15,6 @@ public:
 	//std::vector<VertexIn> vertices;
 	std::vector<Vec4> pos;
 	std::vector<Vec4> normal;
+	std::vector<Vec2> uv;
 	std::vector<unsigned int> indices;
 };

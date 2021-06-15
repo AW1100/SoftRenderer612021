@@ -61,7 +61,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		}
 		else
 		{
-			g_demo->Update(0.0);
+			g_demo->update(0.0);
 			g_demo->Render();
 			InvalidateRect(g_hWnd, nullptr, true);
 			UpdateWindow(g_hWnd);
@@ -134,25 +134,43 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 		//鼠标事件
 		//鼠标被按下时
+	case WM_KEYDOWN:
+	{
+		// W:0x57	A:0x41	S:0x53	D:0x44
+		switch (wParam)
+		{
+		case 0x41:
+			g_demo->onKeyPressed(1);
+			break;
+		case 0x53:
+			g_demo->onKeyPressed(2);
+			break;
+		case 0x44:
+			g_demo->onKeyPressed(3);
+			break;
+		default:
+			return 0;
+		}
+	}
 	case WM_LBUTTONDOWN:
 	case WM_MBUTTONDOWN:
 	case WM_RBUTTONDOWN:
-		g_demo->OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		g_demo->onMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 
 		//鼠标释放时
 	case WM_LBUTTONUP:
 	case WM_MBUTTONUP:
 	case WM_RBUTTONUP:
-		g_demo->OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		g_demo->onMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 
 		//鼠标移动时
 	case WM_MOUSEMOVE:
-		g_demo->OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		g_demo->onMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 	case WM_MOUSEWHEEL:
-
+		g_demo->onWheelScroll(GET_WHEEL_DELTA_WPARAM(wParam));
 		return 0;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);

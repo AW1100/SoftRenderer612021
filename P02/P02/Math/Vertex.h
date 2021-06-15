@@ -39,17 +39,17 @@ class VertexOut
 public:
 	
 	VertexOut() = default;
-	VertexOut(Vec4 fragPos_, Vec4 postPos_, Vec4 normal_, Vec4 color_, double oneOverZ_) :
+	VertexOut(Vec4 worldPos_, Vec4 fragPos_, Vec4 normal_, Vec4 color_, double oneOverZ_) :
+		worldPos(worldPos_),
 		fragPos(fragPos_),
-		postPos(postPos_),
 		normal(normal_),
 		color(color_),
 		oneOverZ(oneOverZ_)
 	{}
 
 	VertexOut(const VertexOut& rhs) :
+		worldPos(rhs.worldPos),
 		fragPos(rhs.fragPos),
-		postPos(rhs.postPos),
 		normal(rhs.normal),
 		color(rhs.color),
 		oneOverZ(rhs.oneOverZ)
@@ -57,8 +57,8 @@ public:
 
 	VertexOut& operator= (const VertexOut& rhs)
 	{
+		this->worldPos = rhs.worldPos;
 		this->fragPos = rhs.fragPos;
-		this->postPos = rhs.postPos;
 		this->normal = rhs.normal;
 		this->color = rhs.color;
 		this->oneOverZ = rhs.oneOverZ;
@@ -66,8 +66,8 @@ public:
 	}
 
 public:
+	Vec4 worldPos;
 	Vec4 fragPos;
-	Vec4 postPos;
 	Vec4 normal;
 	Vec4 color;
 	double oneOverZ;

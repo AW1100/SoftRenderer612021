@@ -4,8 +4,10 @@
 #include <vector>
 #include "Vec4.h"
 #include "ObjReader.h"
+#include "Util.h"
+#include "TextureReader.h"
 
-enum RENDER_MODE { WIREFRAME, SOLID };
+static RENDER_MODE RM = RENDER_MODE::SOLID_NO_LIGHT;
 
 class DeviceContext
 {
@@ -17,11 +19,13 @@ public:
 	void setRenderMode(RENDER_MODE mode);
 	void setShader(Shader* s);
 	void drawIndexed();
-	inline void setObjModel(ObjReader* o) { obj = o; }
+	inline void setObjModel(ObjReader* o) { m_obj = o; }
+	inline void setTexture(TextureReader t) { m_texture = t; }
+	//inline void setRenderMode() { m_renderMode = RENDER_MODE::WIREFRAME; }
 
 private:
 	void toCVV(VertexOut& v);
-	bool clip(const VertexOut& v);
+	bool clip(VertexOut& v);
 	VertexOut transformToProj(const VertexIn& v);
 	void transformToScreen(const Mat4& m, VertexOut& v);
 	bool backFaceCulling(const VertexIn& v1, const VertexIn& v2, const VertexIn& v3);
@@ -32,8 +36,9 @@ private:
 	void drawTriangleBottom(const VertexOut& v1, const VertexOut& v2, const VertexOut& v3);
 	void triangleRasterization(const VertexOut& v1, const VertexOut& v2, const VertexOut& v3);
 
-	Device* m_pDevice;
+	Device* m_device;
 	RENDER_MODE m_renderMode;
-	ObjReader* obj;
-	Shader* m_pShader;
+	ObjReader* m_obj;
+	Shader* m_shader;
+	TextureReader m_texture;
 };
