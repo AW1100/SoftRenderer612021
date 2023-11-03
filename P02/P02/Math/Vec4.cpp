@@ -42,19 +42,10 @@ Vec4 Vec4::operator-(const Vec4& v2) const
 	return Vec4(x - v2.x, y - v2.y, z - v2.z);
 }
 
-Vec4 Vec4::operator*(double s)
+Vec4 Vec4::operator*(double s) const
 {
 	return Vec4(x*s, y*s, z*s);
 }
-
-Vec4 Vec4::operator*(const Mat4& m) const
-{
-	return Vec4(x*m.m[0][0] + y * m.m[1][0] + z * m.m[2][0] + w * m.m[3][0],
-		x*m.m[0][1] + y * m.m[1][1] + z * m.m[2][1] + w * m.m[3][1],
-		x*m.m[0][2] + y * m.m[1][2] + z * m.m[2][2] + w * m.m[3][2],
-		x*m.m[0][3] + y * m.m[1][3] + z * m.m[2][3] + w * m.m[3][3]);
-}
-
 
 Vec4 Vec4::operator*(const Vec4& v2) const
 {
@@ -63,7 +54,7 @@ Vec4 Vec4::operator*(const Vec4& v2) const
 
 Vec4 Vec4::operator/(double s)
 {
-	return Vec4(x / s, y / s, z / s, w);
+	return Vec4(x / s, y / s, z / s, w / s);
 }
 
 bool Vec4::operator==(const Vec4& v2) const
@@ -78,7 +69,7 @@ double Vec4::dot(Vec4 v2) const
 
 Vec4 Vec4::cross(Vec4 v2) const
 {
-	return Vec4(y*v2.z - z * v2.y, z*v2.x - x * v2.z, x*v2.y - y * v2.x);
+	return Vec4(y*v2.z - z * v2.y, z*v2.x - x * v2.z, x*v2.y - y * v2.x, 0.0);
 }
 
 double Vec4::length() const
@@ -92,13 +83,3 @@ Vec4 Vec4::normalize()
 
 	return Vec4(x*temp, y*temp, z*temp, w);
 }
-
-Vec4 Vec4::transform(const Mat4& m) const
-{
-	return Vec4(x * m.m[0][0] + y * m.m[0][1] + z * m.m[0][2] + w * m.m[0][3],
-		x * m.m[1][0] + y * m.m[1][1] + z * m.m[1][2] + w * m.m[1][3],
-		x * m.m[2][0] + y * m.m[2][1] + z * m.m[2][2] + w * m.m[2][3],
-		x * m.m[3][0] + y * m.m[3][1] + z * m.m[3][2] + w * m.m[3][3]
-	);
-}
-

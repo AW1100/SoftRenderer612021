@@ -1,5 +1,4 @@
 #pragma once
-#include "Mat4.h"
 
 class Vec4
 {
@@ -10,8 +9,7 @@ public:
 	Vec4& operator=(const Vec4& rhs);
 	Vec4 operator+(const Vec4& v2) const;
 	Vec4 operator-(const Vec4& v2) const;
-	Vec4 operator*(double s);  // scalar
-	Vec4 operator*(const Mat4& m) const;
+	Vec4 operator*(double s) const;
 	Vec4 operator*(const Vec4& v2) const;
 	Vec4 operator/(double s);
 	bool operator==(const Vec4& v2) const;
@@ -19,7 +17,6 @@ public:
 	Vec4 cross(Vec4 v2) const;
 	double length() const;
 	Vec4 normalize();
-	Vec4 transform(const Mat4& m) const;
 
 public:
 	double x;

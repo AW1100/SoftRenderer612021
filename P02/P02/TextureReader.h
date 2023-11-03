@@ -1,18 +1,27 @@
 #pragma once
 #include "Vec4.h"
 #include "Vec2.h"
+#include "Texture.h"
 
 #include <vector>
+#include <string>
 
 class TextureReader
 {
 public:
-	TextureReader()
+	TextureReader();
+	~TextureReader()
 	{
-		colorArray.reserve(4194304);
+		if (texture_buffer != nullptr)
+			delete texture_buffer;
+		if (normal_buffer != nullptr)
+			delete normal_buffer;
 	}
-	void textureToColorArray();
+	
+	void textureToColorArray(std::wstring infilename);
+	void textureToNormalArray(std::wstring infilename);
 
 
-	std::vector<Vec4> colorArray;
+	Texture* texture_buffer;
+	Texture* normal_buffer;
 };

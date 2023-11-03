@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+P02/.vs/
+P02/Debug/
+P02/x64/
+P02/P02/Debug/
+P02/P02/x64/

@@ -1,4 +1,6 @@
 #include "Mat4.h"
+#include "Mat3.h"
+#include "Vec4.h"
 
 Mat4::Mat4(double m00, double m01, double m02, double m03,
 	double m10, double m11, double m12, double m13,
@@ -18,6 +20,15 @@ Mat4::Mat4(double s)
 	m[2][0] = 0; m[2][1] = 0; m[2][2] = s; m[2][3] = 0;
 	m[3][0] = 0; m[3][1] = 0; m[3][2] = 0; m[3][3] = 1.0;
 }
+
+Mat4::Mat4(const Mat3& m3)
+{
+	m[0][0] = m3.m[0][0]; m[0][1] = m3.m[0][1]; m[0][2] = m3.m[0][2]; m[0][3] = 0.0;
+	m[1][0] = m3.m[1][0]; m[1][1] = m3.m[1][1]; m[1][2] = m3.m[1][2]; m[1][3] = 0.0;
+	m[2][0] = m3.m[2][0]; m[2][1] = m3.m[2][1]; m[2][2] = m3.m[2][2]; m[2][3] = 0.0;
+	m[3][0] = 0.0; m[3][1] = 0.0; m[3][2] = 0.0; m[3][3] = 1.0;
+}
+
 
 Mat4& Mat4::operator= (const Mat4& rhs)
 {
@@ -73,5 +84,13 @@ Mat4 Mat4::operator*(const Mat4& rhs)
 	}
 
 	return temp;
+}
+
+Vec4 Mat4::operator*(const Vec4& rhs)
+{
+	return Vec4(m[0][0] * rhs.x + m[0][1] * rhs.y + m[0][2] * rhs.z + m[0][3] * rhs.w,
+				m[1][0] * rhs.x + m[1][1] * rhs.y + m[1][2] * rhs.z + m[1][3] * rhs.w,
+				m[2][0] * rhs.x + m[2][1] * rhs.y + m[2][2] * rhs.z + m[2][3] * rhs.w,
+				m[3][0] * rhs.x + m[3][1] * rhs.y + m[3][2] * rhs.z + m[3][3] * rhs.w);
 }
 

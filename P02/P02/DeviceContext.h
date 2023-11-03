@@ -1,13 +1,15 @@
 #pragma once
 #include "Device.h"
 #include "Shader.h"
-#include <vector>
 #include "Vec4.h"
 #include "ObjReader.h"
 #include "Util.h"
 #include "TextureReader.h"
+#include "Scene.h"
 
-static RENDER_MODE RM = RENDER_MODE::SOLID_NO_LIGHT;
+#include <vector>
+
+static RENDER_MODE RM = RENDER_MODE::TEXTURE_WITH_LIGHT;
 
 class DeviceContext
 {
@@ -18,27 +20,48 @@ public:
 	void init(Device* pDevice);
 	void setRenderMode(RENDER_MODE mode);
 	void setShader(Shader* s);
-	void drawIndexed();
-	inline void setObjModel(ObjReader* o) { m_obj = o; }
-	inline void setTexture(TextureReader t) { m_texture = t; }
-	//inline void setRenderMode() { m_renderMode = RENDER_MODE::WIREFRAME; }
+	void drawIndexed(int& trisNum, bool& cullSwitch);
+	//inline void setObjModel(ObjReader* o) { m_obj = o; }
+	inline void setTexture(TextureReader* t) { m_texture = t; }
+	ObjReader* getObjReader();
+	inline void setScene(Scene* scene) { m_scene = scene; }
+	inline void setLightType(bool* lts) { m_lightTypeSwitch = lts; }
 
 private:
-	void toCVV(VertexOut& v);
-	bool clip(VertexOut& v);
+	void toNDC(Vec4& v);
+	bool clip(VertexOut& v1, VertexOut& v2, VertexOut& v3, int &trisNum);
 	VertexOut transformToProj(const VertexIn& v);
-	void transformToScreen(const Mat4& m, VertexOut& v);
-	bool backFaceCulling(const VertexIn& v1, const VertexIn& v2, const VertexIn& v3);
+	void transformToScreen(Vec4& v);
+	bool backFaceCulling(const VertexOut& v1, const VertexOut& v2, const VertexOut& v3, bool isClockwise);
 	void drawLine(int x1, int y1, int x2, int y2);
-	void scanLineFill(const VertexOut& left, const VertexOut& right, int yIndex);
 	void drawTriangle(const VertexOut& v1, const VertexOut& v2, const VertexOut& v3);
-	void drawTriangleTop(const VertexOut& v1, const VertexOut& v2, const VertexOut& v3);
-	void drawTriangleBottom(const VertexOut& v1, const VertexOut& v2, const VertexOut& v3);
 	void triangleRasterization(const VertexOut& v1, const VertexOut& v2, const VertexOut& v3);
+	void shadowTriangleRasterization(const VertexOut& v1, const VertexOut& v2, const VertexOut& v3);
 
+	Vec4 barycentric(const Vec4 &a, const Vec4 &b, const Vec4 &c, const Vec4 &P);
+	void drawScanLine(const VertexOut& v1, const VertexOut& v2, const VertexOut& v3);
+	void shadowdrawScanLine(const VertexOut& v1, const VertexOut& v2, const VertexOut& v3);
+
+	VertexOut shadowTransformToProj(const VertexIn& v);
+
+	void clipWithOneVertexOutside(VertexOut& v1, VertexOut& v2, VertexOut& v3, int& trisNum);
+	void clipWithTwoVertexOutside(VertexOut& v1, VertexOut& v2, VertexOut& v3, int& trisNum);
+	void postProcessTriangle(VertexOut v1, VertexOut v2, VertexOut v3, int& trisNum);
+
+	void perspectiveCorrection(VertexOut& out);
+	inline void setPointLightPosition(const Vec4& pos) { m_pointLightPos = pos; }
+	
+
+private:
 	Device* m_device;
 	RENDER_MODE m_renderMode;
-	ObjReader* m_obj;
 	Shader* m_shader;
-	TextureReader m_texture;
+	TextureReader* m_texture;
+	Scene* m_scene;
+	bool m_curObjectState;
+	bool* m_lightTypeSwitch;
+
+	Vec4 m_pointLightPos;
+
+	//double debugV1;
 };

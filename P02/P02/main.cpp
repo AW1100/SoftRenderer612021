@@ -3,6 +3,8 @@
 #include <memory>
 #include <string>
 #include <iostream>
+#include <string>
+
 #include "Demo.h"
 #include "Shader.h"
 
@@ -61,7 +63,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		}
 		else
 		{
-			g_demo->update(0.0);
+			g_demo->update();
 			g_demo->Render();
 			InvalidateRect(g_hWnd, nullptr, true);
 			UpdateWindow(g_hWnd);
@@ -75,6 +77,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	PAINTSTRUCT ps;
 	HDC hdc;
+
+	int count = g_demo->getDrawCalls();
+	TCHAR displayLine1[] = L"Triangles drawed count: ";
+	TCHAR num[20] = L"";
+	_itow_s(count, num, 10);
+
+	bool cullSwitch = g_demo->getCullSwitch();
+	TCHAR displayLine2[] = L"Back face culling: ";
+	TCHAR cullstatus[4];
+	if (cullSwitch)
+	{
+		wcscpy_s(cullstatus, L"On");
+	}
+	else
+	{
+		wcscpy_s(cullstatus, L"Off");
+	}
+
 
 	//双缓冲绘图
 	static BITMAPINFO s_bitmapInfo;
@@ -118,6 +138,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		hdc = BeginPaint(hWnd, &ps);
 		//把backbuffer内容传到frontbuffer
 		BitBlt(ps.hdc, 0, 0, g_width, g_height, s_hdcBackbuffer, 0, 0, SRCCOPY);
+		TextOut(hdc, 5, 5, displayLine1, static_cast<int>(wcslen(displayLine1)));
+		TextOut(hdc, 170, 5, num, static_cast<int>(wcslen(num)));
+		TextOut(hdc, 46, 25, displayLine2, static_cast<int>(wcslen(displayLine2)));
+		if (cullSwitch)
+			SetTextColor(hdc, RGB(0, 255, 0));
+		else
+			SetTextColor(hdc, RGB(255, 0, 0));
+		TextOut(hdc, 170, 25, cullstatus, static_cast<int>(wcslen(cullstatus)));
 		EndPaint(hWnd, &ps);
 	}
 	break;
@@ -132,13 +160,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_ERASEBKGND:
 		return true;
 		break;
-		//鼠标事件
 		//鼠标被按下时
 	case WM_KEYDOWN:
 	{
-		// W:0x57	A:0x41	S:0x53	D:0x44
+		//A:0x41	S:0x53	D:0x44	F:0x46
 		switch (wParam)
 		{
+		case VK_UP:
+			g_demo->upKeyPressed();
+			break;
+		case VK_DOWN:
+			g_demo->downKeyPressed();
+			break;
+		case VK_LEFT:
+			g_demo->leftKeyPressed();
+			break;
+		case VK_RIGHT:
+			g_demo->rightKeyPressed();
+			break;
 		case 0x41:
 			g_demo->onKeyPressed(1);
 			break;
@@ -147,6 +186,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		case 0x44:
 			g_demo->onKeyPressed(3);
+			break;
+		case 0x46:
+			g_demo->onKeyPressed(4);
+			break;
+		case VK_SPACE:
+			g_demo->modelSwitch();
+			break;
+		case 0x5A:
+			g_demo->lightMovingSwitch();
+			break;
+		case 0x58:
+			g_demo->toggleCullSwitch();
 			break;
 		default:
 			return 0;
@@ -168,9 +219,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		//鼠标移动时
 	case WM_MOUSEMOVE:
 		g_demo->onMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		break;
 		return 0;
 	case WM_MOUSEWHEEL:
 		g_demo->onWheelScroll(GET_WHEEL_DELTA_WPARAM(wParam));
+		break;
 		return 0;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);

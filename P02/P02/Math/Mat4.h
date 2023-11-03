@@ -1,4 +1,6 @@
 #pragma once
+class Mat3;
+class Vec4;
 
 class Mat4
 {
@@ -9,10 +11,12 @@ public:
 		double m20, double m21, double m22, double m23,
 		double m30, double m31, double m32, double m33);
 	Mat4(double s);
+	Mat4(const Mat3& m3);
 	Mat4& operator= (const Mat4& rhs);
 	Mat4 operator+(const Mat4& rhs);
 	Mat4 operator-(const Mat4& rhs);
 	Mat4 operator*(const Mat4& rhs);
+	Vec4 operator*(const Vec4& rhs);
 
 public:
 	double m[4][4];

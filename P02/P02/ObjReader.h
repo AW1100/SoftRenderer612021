@@ -10,11 +10,12 @@ class ObjReader
 {
 public:
 	ObjReader() = default;
-	void readObjectFile(std::string filePath);
+	~ObjReader() = default;
+	void readObjectFile();
 
-	//std::vector<VertexIn> vertices;
+	std::string filePath;
 	std::vector<Vec4> pos;
 	std::vector<Vec4> normal;
 	std::vector<Vec2> uv;
-	std::vector<unsigned int> indices;
+	std::vector<int> indices;
 };
